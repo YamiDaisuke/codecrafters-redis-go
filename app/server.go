@@ -156,13 +156,14 @@ func main() {
 	}
 
 	fmt.Println("Server listening")
-	for {
-		conn, err := l.Accept()
-		if err != nil {
-			fmt.Println("Error accepting connection: ", err.Error())
-		}
+	conn, err := l.Accept()
+	defer conn.Close()
+	if err != nil {
+		fmt.Println("Error accepting connection: ", err.Error())
+	}
 
-		reader := bufio.NewReader(conn)
+	reader := bufio.NewReader(conn)
+	for {
 		input, err := readInput(reader)
 
 		if err != nil {
@@ -170,6 +171,5 @@ func main() {
 		}
 
 		executeCmd(input, conn)
-		conn.Close()
 	}
 }
