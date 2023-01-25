@@ -135,7 +135,7 @@ func executeCmd(cmd interface{}, conn net.Conn) {
 	if cmdArr, ok := cmd.([]interface{}); ok {
 		if cmdStr, ok := cmdArr[0].(string); ok {
 			cmdStr = strings.ToUpper(cmdStr)
-			fmt.Println("Command is: ", cmdStr)
+			fmt.Println("Executing: ", cmdStr)
 			switch cmdStr {
 			case "PING":
 				conn.Write([]byte{'+', 'P', 'O', 'N', 'G', '\r', '\n'})
@@ -154,20 +154,22 @@ func main() {
 		fmt.Println("Failed to bind to port: ", PORT)
 		os.Exit(1)
 	}
-	conn, err := l.Accept()
-	if err != nil {
-		fmt.Println("Error accepting connection: ", err.Error())
-		os.Exit(1)
+
+	fmt.Println("Server listening")
+	for {
+		conn, err := l.Accept()
+		if err != nil {
+			fmt.Println("Error accepting connection: ", err.Error())
+		}
+
+		reader := bufio.NewReader(conn)
+		input, err := readInput(reader)
+
+		if err != nil {
+			fmt.Println("Error reading input: ", err.Error())
+		}
+
+		executeCmd(input, conn)
+		conn.Close()
 	}
-
-	defer conn.Close()
-	reader := bufio.NewReader(conn)
-	input, err := readInput(reader)
-
-	if err != nil {
-		fmt.Println("Error accepting connection: ", err.Error())
-		os.Exit(1)
-	}
-
-	executeCmd(input, conn)
 }
