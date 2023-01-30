@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"io"
 	"net"
 	"os"
 	"strconv"
@@ -144,6 +145,23 @@ func executeCmd(cmd interface{}, conn net.Conn) {
 	}
 }
 
+func handleConnection(conn net.Conn) {
+	reader := bufio.NewReader(conn)
+	for {
+		input, err := readInput(reader)
+
+		if err != nil {
+			if err == io.EOF {
+				conn.Close()
+				break
+			}
+			fmt.Println("Error reading input: ", err.Error())
+		}
+
+		executeCmd(input, conn)
+	}
+}
+
 // Server
 
 func main() {
@@ -156,20 +174,11 @@ func main() {
 	}
 
 	fmt.Println("Server listening")
-	conn, err := l.Accept()
-	defer conn.Close()
-	if err != nil {
-		fmt.Println("Error accepting connection: ", err.Error())
-	}
-
-	reader := bufio.NewReader(conn)
 	for {
-		input, err := readInput(reader)
-
+		conn, err := l.Accept()
 		if err != nil {
-			fmt.Println("Error reading input: ", err.Error())
+			fmt.Println("Error accepting connection: ", err.Error())
 		}
-
-		executeCmd(input, conn)
+		go handleConnection(conn)
 	}
 }
