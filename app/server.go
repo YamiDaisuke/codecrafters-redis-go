@@ -140,6 +140,23 @@ func executeCmd(cmd interface{}, conn net.Conn) {
 			switch cmdStr {
 			case "PING":
 				conn.Write([]byte{'+', 'P', 'O', 'N', 'G', '\r', '\n'})
+			case "ECHO":
+				if echoInput, ok := cmdArr[1].(string); ok {
+					// TODO: What is better multiple writes? or a single write?
+					// conn.Write([]byte{'$'})
+					// conn.Write([]byte(strconv.Itoa(len(echoInput))))
+					// conn.Write([]byte{'\r', '\n'})
+					// conn.Write([]byte(echoInput))
+					// conn.Write([]byte{'\r', '\n'})
+					bytes := []byte{'$'}
+					bytes = append(bytes, []byte(strconv.Itoa(len(echoInput)))...)
+					bytes = append(bytes, '\r', '\n')
+					bytes = append(bytes, []byte(echoInput)...)
+					bytes = append(bytes, '\r', '\n')
+					conn.Write(bytes)
+				}
+				fmt.Println("Expected a bulk string as input for echo command")
+				// TODO: Return a redis error
 			}
 		}
 	}
